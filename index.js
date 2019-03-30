@@ -14,6 +14,32 @@ const SUPPORTED_MIMES = {
   png: "image/png"
 };
 
+const buffer = buf => {
+  return new Promise((resolve, reject) => {
+    return jimp
+      .read(buf)
+      .then(image => image.resize(25, jimp.AUTO))
+      .then(image =>
+        image.getBuffer('image/jpeg', (err, data) => {
+          if (err) {
+            return reject(err);
+          }
+
+          if (data) {
+            // valid image Base64 string, ready to go as src or CSS background
+            return resolve(toBase64('image/jpeg', data));
+          }
+          return reject(
+            new Error('Unhandled promise rejection in base64 promise')
+          );
+        })
+      )
+      .catch(err => {
+        return reject(err);
+      });
+  });
+};
+
 const base64 = file => {
   return new Promise((resolve, reject) => {
     // get the extension of the chosen file
@@ -78,5 +104,6 @@ process.on("unhandledRejection", up => {
 
 module.exports = {
   base64,
-  palette
+  palette,
+  buffer
 };
